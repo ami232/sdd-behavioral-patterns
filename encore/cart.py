@@ -1,6 +1,6 @@
 
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 from .pricing import PricingStrategy, StandardPricing
 
@@ -60,69 +60,76 @@ class Command(ABC):
 
 class AddTicketCommand(Command):
     def __init__(self, cart: Cart, category: str, qty: int, unit_price: float):
-        # TODO: store cart, category, qty and unit_price for later use.
-        pass
+        self._cart = cart
+        self._category = category
+        self._qty = qty
+        self._unit_price = unit_price
 
     def execute(self) -> None:
-        # TODO: add `qty` tickets of `category` at `unit_price` to the cart.
-        pass
+        self._cart.add_item(self._category, self._qty, self._unit_price)
 
     def undo(self) -> None:
-        # TODO: remove exactly the tickets this command added.
-        pass
+        self._cart.remove_item(self._category, self._qty)
 
 
 class RemoveTicketCommand(Command):
     def __init__(self, cart: Cart, category: str, qty: int):
-        # TODO: store cart, category and qty. You'll also need somewhere to
-        # remember how many tickets were *actually* removed, and at what
-        # price, once execute() runs.
-        pass
+        self._cart = cart
+        self._category = category
+        self._qty = qty
+        self._removed_qty = 0
+        self._unit_price = 0.0
 
     def execute(self) -> None:
-        # TODO: remove up to `qty` tickets of `category` from the cart
-        # (cart.remove_item returns how many were actually removed), and
-        # remember that count plus the unit price so undo() can restore them.
-        pass
+        # The price has to be read before the removal, since removing the last
+        # ticket of a category drops the line item entirely.
+        _, unit_price = self._cart.items().get(self._category, (0, 0.0))
+        self._removed_qty = self._cart.remove_item(self._category, self._qty)
+        self._unit_price = unit_price
 
     def undo(self) -> None:
-        # TODO: add back exactly the quantity that was actually removed, at
-        # the price it was removed at. Do nothing if nothing was removed.
-        pass
+        if self._removed_qty > 0:
+            self._cart.add_item(self._category, self._removed_qty, self._unit_price)
 
 
 class SetPricingStrategyCommand(Command):
     def __init__(self, cart: Cart, strategy: PricingStrategy):
-        # TODO: store cart and the new strategy. You'll need somewhere to
-        # keep the previous strategy once execute() runs.
-        pass
+        self._cart = cart
+        self._strategy = strategy
+        self._previous_strategy = None
 
     def execute(self) -> None:
-        # TODO: swap the cart's pricing strategy, remembering the previous one.
-        pass
+        self._previous_strategy = self._cart.set_pricing_strategy(self._strategy)
 
     def undo(self) -> None:
-        # TODO: restore the previous pricing strategy.
-        pass
+        if self._previous_strategy is not None:
+            self._cart.set_pricing_strategy(self._previous_strategy)
 
 
 class CartInvoker:
     def __init__(self):
-        # TODO: set up a history stack and a redo stack.
-        pass
+        self._history: List[Command] = []
+        self._redo_stack: List[Command] = []
 
     def run(self, command: Command) -> None:
-        # TODO: execute `command`, push it onto the history, and clear the
-        # redo stack (a fresh command invalidates any pending redo).
-        pass
+        command.execute()
+        self._history.append(command)
+        self._redo_stack.clear()
 
     def undo(self, n: int = 1) -> int:
-        # TODO: undo up to `n` commands from the history, moving each onto
-        # the redo stack. Return how many were actually undone (fewer than
-        # `n` once history runs out).
-        pass
+        undone = 0
+        while undone < n and self._history:
+            command = self._history.pop()
+            command.undo()
+            self._redo_stack.append(command)
+            undone += 1
+        return undone
 
     def redo(self, n: int = 1) -> int:
-        # TODO: redo up to `n` commands from the redo stack, moving each back
-        # onto the history. Return how many were actually redone.
-        pass
+        redone = 0
+        while redone < n and self._redo_stack:
+            command = self._redo_stack.pop()
+            command.execute()
+            self._history.append(command)
+            redone += 1
+        return redone
