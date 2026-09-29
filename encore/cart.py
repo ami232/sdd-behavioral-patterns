@@ -60,56 +60,54 @@ class Command(ABC):
 
 class AddTicketCommand(Command):
     def __init__(self, cart: Cart, category: str, qty: int, unit_price: float):
-        # TODO: store cart, category, qty and unit_price for later use.
-        pass
+        self.cart = cart
+        self.category = category
+        self.qty = qty
+        self.unit_price = unit_price
 
     def execute(self) -> None:
-        # TODO: add `qty` tickets of `category` at `unit_price` to the cart.
-        pass
+        self.cart.add_item(self.category, self.qty, self.unit_price)
 
     def undo(self) -> None:
-        # TODO: remove exactly the tickets this command added.
-        pass
+        self.cart.remove_item(self.category, self.qty)
 
 
 class RemoveTicketCommand(Command):
     def __init__(self, cart: Cart, category: str, qty: int):
+        self.cart = cart
+        self.category = category
+        self.qty = qty
+        self.removed = None
+        self.price = None
         # TODO: store cart, category and qty. You'll also need somewhere to
         # remember how many tickets were *actually* removed, and at what
         # price, once execute() runs.
-        pass
 
     def execute(self) -> None:
-        # TODO: remove up to `qty` tickets of `category` from the cart
-        # (cart.remove_item returns how many were actually removed), and
-        # remember that count plus the unit price so undo() can restore them.
-        pass
+        self.removed = self.cart.remove_item(self.category, self.qty)
+        self.price = self.cart.items[self.category][1]
 
     def undo(self) -> None:
-        # TODO: add back exactly the quantity that was actually removed, at
-        # the price it was removed at. Do nothing if nothing was removed.
-        pass
+        self.cart.add_item(self.category, self.qty, self.price)
 
 
 class SetPricingStrategyCommand(Command):
     def __init__(self, cart: Cart, strategy: PricingStrategy):
-        # TODO: store cart and the new strategy. You'll need somewhere to
-        # keep the previous strategy once execute() runs.
+        self.cart = cart
+        self.strategy = strategy
+        self.previous = None
         pass
 
     def execute(self) -> None:
-        # TODO: swap the cart's pricing strategy, remembering the previous one.
-        pass
+        self.previous = self.cart.set_pricing_strategy(self.strategy)
 
     def undo(self) -> None:
-        # TODO: restore the previous pricing strategy.
-        pass
-
+        self.cart.set_pricing_strategy(self.previous)
 
 class CartInvoker:
     def __init__(self):
-        # TODO: set up a history stack and a redo stack.
-        pass
+        self.history = []
+        self._redo = []
 
     def run(self, command: Command) -> None:
         # TODO: execute `command`, push it onto the history, and clear the
