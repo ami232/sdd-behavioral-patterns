@@ -50,7 +50,7 @@ root_dir
 ## Setup
 
 Preferred: [uv](https://docs.astral.sh/uv/). Install uv once per machine (see
-uv's docs), then from inside the repo:
+uv's docs), then from inside your local clone:
 
 ```bash
 uv venv                              # create a local virtual environment (.venv)
@@ -88,12 +88,27 @@ python -m encore.app
 
 ## How to submit
 
-1. Fork this repo to your own GitHub account. Keep the fork **public** (the
-   default when forking a public repo) so it can be reviewed without needing
-   collaborator access.
-2. Clone your fork and work through the exercises below on a branch, e.g.:
+Two different repos are involved, so be precise about which is which:
+
+- **The course repo** is `ami232/sdd-behavioral-patterns`.
+  This is where your work has to end up. You cannot push to it, which is
+  exactly why you send a pull request.
+- **Your fork** is `<your-github-username>/sdd-behavioral-patterns`.
+  This is where you do the work.
+
+Every step below says which of the two it means. Where these instructions say
+"the course repo", they never mean your fork, even though your fork contains
+a copy of this same README.
+
+1. Fork `ami232/sdd-behavioral-patterns` to your own GitHub account.
+   Keep the fork **public** (the default when forking a public repo) so it can
+   be reviewed without needing collaborator access.
+2. Clone **your fork**, not the course repo, and work through the exercises
+   below on a branch:
 
    ```bash
+   git clone <the URL from the green "Code" button on your fork>
+   cd sdd-behavioral-patterns
    git switch -c solution
    ```
 
@@ -103,7 +118,21 @@ python -m encore.app
    git push origin solution
    ```
 
-4. Open a **pull request** from your branch into this repo's `main` branch.
+4. Open a **pull request from your fork into the course repo**. On github.com,
+   open your fork, click "Contribute", then "Open pull request".
+
+   Before you submit it, check that the pull request header reads exactly:
+
+   | Field | Value |
+   | --- | --- |
+   | base repository | `ami232/sdd-behavioral-patterns` |
+   | base | `main` |
+   | head repository | `<your-github-username>/sdd-behavioral-patterns` |
+   | compare | `solution` |
+
+   **If your own username appears on both sides, the pull request is aimed at
+   your own fork and will never reach us.** Change it with the "base
+   repository" dropdown before submitting.
 5. Opening the PR automatically runs the full test suite as a GitHub Actions
    check, see the "Checks" tab on your PR. All three test files
    (`test_pricing.py`, `test_cart.py`, `test_waitlist.py`) must pass for the
